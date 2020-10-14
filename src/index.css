@@ -1,0 +1,9 @@
+.main-bg {
+  background-image: -webkit-gradient(
+    linear,
+    left top,
+    left bottom,
+    color-stop(9%, #6e3f98),
+    to(#d6ab97)
+  );
+}
