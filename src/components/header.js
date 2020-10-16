@@ -14,9 +14,18 @@ import {
 } from "react-bootstrap";
 
 export default function Header() {
-  const [toggle, setToggleSwitch] = useState("metric");
+  const [unit, setToggleSwitch] = useState("metric");
   const [city, setCity] = useState("");
-  const [weather, setWeather] = useState();
+  const [weather, setWeather] = useState({
+    temp: "",
+    feels_like: "",
+    temp_min: "",
+    temp_max: "",
+    humidity: "",
+    country: "",
+  });
+
+  // const [weather, setWeather] = useState();
 
   // const handleSwitchChange = () => {
   //   // console.log(!toggle);
@@ -27,26 +36,51 @@ export default function Header() {
   //     : setToggleSwitch("metric");
   // };
 
+  const getAllDigitsBeforeDecimals = (num) => {
+    console.log(typeof num);
+    const str_num = num.toString();
+    let new_num = "";
+    for (let i = 0; i < str_num.length; i++) {
+      if (str_num[i] === ".") return new_num;
+      new_num += str_num[i];
+      // console.log(new_num, "new_num");
+    }
+  };
+
   const handleChange = (e) => {
     // console.log(toggle);
     setCity(e.target.value);
   };
 
   const getWeather = () => {
+    // e.preventDefault();
     const APIKey = "edffd1bf975a74d5d10e58c5ac8be2d3";
     // fetch(`api.openweathermap.org/data/2.5/weather?q=${city}&appid=${APIKey}`)  did not work because this did not have http in the beginning
 
     // promise
     fetch(
-      `http://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${APIKey}&units=${toggle}`
+      `http://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${APIKey}&units=${unit}`
     )
       .then(function (response) {
         return response.json();
       })
-      .then(function (response) {
-        let new_data = response;
-        console.log(response);
-        setWeather(JSON.stringify(response));
+      .then((data) => {
+        console.log(data);
+        let { temp, feels_like, temp_max, temp_min, humidity } = data.main;
+        // setWeather(data.main.temp);
+        setWeather({
+          temp: getAllDigitsBeforeDecimals(temp),
+          feels_like: getAllDigitsBeforeDecimals(feels_like),
+          temp_min: getAllDigitsBeforeDecimals(temp_max),
+          temp_max: getAllDigitsBeforeDecimals(temp_min),
+          humidity: humidity,
+          city: data.name,
+          country: data.sys.country,
+        });
+        // console.log(
+        //   `http://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${APIKey}&units=${unit}`
+        // );
+        console.log(data);
       });
   };
 
@@ -97,15 +131,16 @@ export default function Header() {
           uncheckedIcon={<span className="switch-icon">°F</span>}
           checkedIcon={<span className="switch-icon">°C</span>}
           onChange={() =>
-            toggle === "metric"
+            unit === "metric"
               ? setToggleSwitch("imperial")
               : setToggleSwitch("metric")
           }
-          checked={toggle === "metric"}
+          // what is checked?
+          checked={unit === "metric"}
         />
       </nav>
       {/* end of nav and moves to main div */}
-      <Weather value={weather} />
+      <Weather value={weather} unit={unit} />
     </div>
 
     // <Navbar bg="light" expand="col">
