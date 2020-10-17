@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useRef } from "react";
 import Weather from "./weather";
 // import Navbar from "react-bootstrap/Navbar";
 import Switch from "react-switch";
@@ -45,6 +45,8 @@ export default function Header() {
       new_num += str_num[i];
       // console.log(new_num, "new_num");
     }
+    // needs this new_num for when num has no decimal e.g. 12°C
+    return new_num;
   };
 
   const handleChange = (e) => {
@@ -52,57 +54,91 @@ export default function Header() {
     setCity(e.target.value);
   };
 
-  const getWeather = () => {
-    // e.preventDefault();
+  async function getWeather() {
     const APIKey = "edffd1bf975a74d5d10e58c5ac8be2d3";
-    // fetch(`api.openweathermap.org/data/2.5/weather?q=${city}&appid=${APIKey}`)  did not work because this did not have http in the beginning
 
-    // promise
-    fetch(
-      `http://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${APIKey}&units=${unit}`
-    )
-      .then(function (response) {
-        return response.json();
-      })
-      .then((data) => {
-        console.log(data);
-        let { temp, feels_like, temp_max, temp_min, humidity } = data.main;
-        // setWeather(data.main.temp);
-        setWeather({
-          temp: getAllDigitsBeforeDecimals(temp),
-          feels_like: getAllDigitsBeforeDecimals(feels_like),
-          temp_min: getAllDigitsBeforeDecimals(temp_max),
-          temp_max: getAllDigitsBeforeDecimals(temp_min),
-          humidity: humidity,
-          city: data.name,
-          country: data.sys.country,
-        });
-        // console.log(
-        //   `http://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${APIKey}&units=${unit}`
-        // );
-        console.log(data);
+    try {
+      const response = await fetch(
+        `http://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${APIKey}&units=${unit}`
+      );
+
+      let data = await response.json();
+      console.log(data);
+      let { temp, feels_like, temp_max, temp_min, humidity } = data.main;
+      setWeather({
+        temp: getAllDigitsBeforeDecimals(temp),
+        feels_like: getAllDigitsBeforeDecimals(feels_like),
+        temp_min: getAllDigitsBeforeDecimals(temp_min),
+        temp_max: getAllDigitsBeforeDecimals(temp_max),
+        humidity: humidity,
+        city: data.name,
+        country: data.sys.country,
       });
-  };
+    } catch (e) {
+      // fires when json returns 404
+      console.log("not valid");
+      error.current.classList.add("display");
+      setTimeout(() => {
+        error.current.classList.remove("display");
+      }, 2000);
+    }
+  }
 
-  // async function getWeather () {
-  //   fetch()
-  // }
+  // const getWeather = () => {
+  //   // if (isCityValid)
+  //     //
+  //     // e.preventDefault();
+  //     const APIKey = "edffd1bf975a74d5d10e58c5ac8be2d3";
+  //   // fetch(`api.openweathermap.org/data/2.5/weather?q=${city}&appid=${APIKey}`)  did not work because this did not have http in the beginning
+
+  //   // promise
+  //   fetch(
+  //     `http://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${APIKey}&units=${unit}`
+  //   )
+  //     .then(function (response) {
+  //       return response.json();
+  //     })
+  //     .then((data) => {
+  //       console.log(data);
+  //       let { temp, feels_like, temp_max, temp_min, humidity } = data.main;
+  //       // setWeather(data.main.temp);
+  //       setWeather({
+  //         temp: getAllDigitsBeforeDecimals(temp),
+  //         feels_like: getAllDigitsBeforeDecimals(feels_like),
+  //         temp_min: getAllDigitsBeforeDecimals(temp_min),
+  //         temp_max: getAllDigitsBeforeDecimals(temp_max),
+  //         humidity: humidity,
+  //         city: data.name,
+  //         country: data.sys.country,
+  //       });
+  //       // console.log(
+  //       //   `http://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${APIKey}&units=${unit}`
+  //       // );
+  //       console.log(data);
+  //     });
+  // };
+  let error = useRef(); // grab html element
 
   return (
     <div>
       <nav className="nav bg-light justify-content-between p-4 align-items-center">
         <h2>Weather App</h2>
         {/* when clicking enter, page refreshes why?? */}
-        <Form inline>
-          <FormControl
-            type="text"
-            placeholder="Search"
-            className="mr-sm-2"
-            onChange={handleChange}
-          />
-          <Button variant="outline-success" onClick={getWeather}>
-            Search
-          </Button>
+        <Form>
+          <div className="d-flex align-items-center">
+            <FormControl
+              type="text"
+              placeholder="Search"
+              className="mr-sm-2"
+              onChange={handleChange}
+            />
+            <Button variant="outline-success" onClick={getWeather}>
+              Search
+            </Button>
+          </div>
+          <div ref={error} className="error-container d-block">
+            <p>Location Not Found</p>
+          </div>
         </Form>
         {/* <div className="d-flex">
           <span className="mx-2">°F</span>

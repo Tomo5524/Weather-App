@@ -7,3 +7,19 @@
     to(#d6ab97)
   );
 }
+
+.error-container {
+  color: rgb(202, 78, 78);
+  margin: auto auto;
+  text-align: center;
+  height: 0px;
+  opacity: 0;
+  transition: all 0.5s ease;
+}
+
+.display {
+  /* display: block; */
+  position: relative;
+  transform: translate(0px, 10px);
+  opacity: 1;
+}
