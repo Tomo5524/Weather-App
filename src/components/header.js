@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import Weather from "./weather";
 // import Navbar from "react-bootstrap/Navbar";
 import Switch from "react-switch";
@@ -15,6 +15,7 @@ import {
 
 export default function Header() {
   const [unit, setToggleSwitch] = useState("metric");
+  console.log(unit, "unit/////////////////////////////");
   const [city, setCity] = useState("");
   const [weather, setWeather] = useState({
     temp: "",
@@ -27,17 +28,8 @@ export default function Header() {
 
   // const [weather, setWeather] = useState();
 
-  // const handleSwitchChange = () => {
-  //   // console.log(!toggle);
-  //   // setSwitch(!toggle);
-  //   // true denotes metric
-  //   toggle === "metric"
-  //     ? setToggleSwitch("imperial")
-  //     : setToggleSwitch("metric");
-  // };
-
   const getAllDigitsBeforeDecimals = (num) => {
-    console.log(typeof num);
+    // console.log(typeof num);
     const str_num = num.toString();
     let new_num = "";
     for (let i = 0; i < str_num.length; i++) {
@@ -54,8 +46,23 @@ export default function Header() {
     setCity(e.target.value);
   };
 
+  const handleSwitchChange = () => {
+    setToggleSwitch(unit === "metric" ? "imperial" : "metric");
+    // getWeather();
+  };
+
+  useEffect(() => {
+    if (city) {
+      console.log(city, "city");
+      // getWeather();
+    }
+  }, [unit]);
+
   async function getWeather() {
+    console.log("getWeather fired");
     const APIKey = "edffd1bf975a74d5d10e58c5ac8be2d3";
+
+    console.log(unit, "unit in getweather/////////");
 
     try {
       const response = await fetch(
@@ -73,6 +80,8 @@ export default function Header() {
         humidity: humidity,
         city: data.name,
         country: data.sys.country,
+        dt: data.dt,
+        timezone: data.timezone,
       });
     } catch (e) {
       // fires when json returns 404
@@ -166,11 +175,10 @@ export default function Header() {
           onColor="#f2f2f2"
           uncheckedIcon={<span className="switch-icon">°F</span>}
           checkedIcon={<span className="switch-icon">°C</span>}
-          onChange={() =>
-            unit === "metric"
-              ? setToggleSwitch("imperial")
-              : setToggleSwitch("metric")
-          }
+          onChange={() => {
+            handleSwitchChange();
+            getWeather();
+          }}
           // what is checked?
           checked={unit === "metric"}
         />
