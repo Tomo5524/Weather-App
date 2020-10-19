@@ -4,7 +4,7 @@ import GetTime from "./time";
 
 function Weather(props) {
   console.log(props, "props in Weather");
-  console.log(props.value.temp);
+  // console.log(props.value.temp);
   let country = getCountryName(props.value.country);
 
   const cur_time = GetTime(props.value.timezone);
@@ -15,7 +15,7 @@ function Weather(props) {
     <div>
       {/* <h3>{props.value}</h3> */}
       <h2>
-        {props.value.city}
+        {props.value.cityName}
         {country ? ", " : ""}
         {/* when there is no country set, nothing should appear on screen */}
         {country}

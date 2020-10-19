@@ -17,6 +17,7 @@ export default function Header() {
   const [unit, setToggleSwitch] = useState("metric");
   console.log(unit, "unit/////////////////////////////");
   const [city, setCity] = useState("");
+  const [userInput, setUserInput] = useState("");
   const [weather, setWeather] = useState({
     temp: "",
     feels_like: "",
@@ -24,6 +25,9 @@ export default function Header() {
     temp_max: "",
     humidity: "",
     country: "",
+    cityName: "",
+    dt: 0,
+    timezone: 0,
   });
 
   // const [weather, setWeather] = useState();
@@ -43,62 +47,91 @@ export default function Header() {
 
   const handleChange = (e) => {
     // console.log(toggle);
-    setCity(e.target.value);
+    setUserInput(e.target.value);
+  };
+
+  const handleClick = () => {
+    console.log("submitted");
+    setCity(userInput);
+    // setUserInput("");
   };
 
   const handleSwitchChange = () => {
-    setToggleSwitch(unit === "metric" ? "imperial" : "metric");
+    // let new_unit = unit === "metric" ? "imperial" : "metric";
+    // console.log(new_unit, "new_unit/////////////");
+    // setToggleSwitch(new_unit);
+    if (no_location.current.classList.contains("no-display")) {
+      setToggleSwitch(unit === "metric" ? "imperial" : "metric");
+    }
+
     // getWeather();
   };
 
   useEffect(() => {
+    async function getWeather() {
+      console.log("getWeather fired");
+      const APIKey = process.env.REACT_APP_WEATHER_API_KEY;
+
+      // console.log(cur_unit, "cur_unit in getweather/////////");
+      console.log(unit, "unit in getweather/////////");
+
+      try {
+        const response = await fetch(
+          `http://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${APIKey}&units=${unit}`
+        );
+
+        let data = await response.json();
+        console.log(data);
+        let { temp, feels_like, temp_max, temp_min, humidity } = data.main;
+        setWeather({
+          temp: getAllDigitsBeforeDecimals(temp),
+          feels_like: getAllDigitsBeforeDecimals(feels_like),
+          temp_min: getAllDigitsBeforeDecimals(temp_min),
+          temp_max: getAllDigitsBeforeDecimals(temp_max),
+          humidity: humidity,
+          country: data.sys.country,
+          cityName: data.name,
+          dt: data.dt,
+          timezone: data.timezone,
+        });
+        // no_location.classList.add("no-display");
+        // locationFound.classList.remove("no-display");
+        hideDiv(no_location);
+        ShowDiv(locationFound);
+        // reset city
+        // userInput("");
+      } catch (e) {
+        // clean up display when there is no city
+
+        // fires when json returns 404
+        // console.log("not valid");
+        // console.log(locationFound, "locationFound");
+        // locationFound.classList.add("no-display");
+        // no_location.classList.remove("no-display");
+        error.current.classList.add("display");
+        setTimeout(() => {
+          error.current.classList.remove("display");
+        }, 2000);
+        hideDiv(locationFound);
+        setTimeout(() => {
+          ShowDiv(no_location);
+        }, 2000);
+      }
+    }
+    // if city not checked, this useEffect fires right after application opens.
     if (city) {
-      console.log(city, "city");
-      // getWeather();
+      getWeather();
     }
-  }, [unit]);
+  }, [unit, city]);
 
-  async function getWeather() {
-    console.log("getWeather fired");
-    const APIKey = "edffd1bf975a74d5d10e58c5ac8be2d3";
-
-    console.log(unit, "unit in getweather/////////");
-
-    try {
-      const response = await fetch(
-        `http://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${APIKey}&units=${unit}`
-      );
-
-      let data = await response.json();
-      console.log(data);
-      let { temp, feels_like, temp_max, temp_min, humidity } = data.main;
-      setWeather({
-        temp: getAllDigitsBeforeDecimals(temp),
-        feels_like: getAllDigitsBeforeDecimals(feels_like),
-        temp_min: getAllDigitsBeforeDecimals(temp_min),
-        temp_max: getAllDigitsBeforeDecimals(temp_max),
-        humidity: humidity,
-        city: data.name,
-        country: data.sys.country,
-        dt: data.dt,
-        timezone: data.timezone,
-      });
-    } catch (e) {
-      // fires when json returns 404
-      console.log("not valid");
-      error.current.classList.add("display");
-      setTimeout(() => {
-        error.current.classList.remove("display");
-      }, 2000);
-    }
+  function ShowDiv(div) {
+    div.current.classList.remove("no-display");
   }
 
-  // const getWeather = () => {
-  //   // if (isCityValid)
-  //     //
-  //     // e.preventDefault();
-  //     const APIKey = "edffd1bf975a74d5d10e58c5ac8be2d3";
-  //   // fetch(`api.openweathermap.org/data/2.5/weather?q=${city}&appid=${APIKey}`)  did not work because this did not have http in the beginning
+  function hideDiv(div) {
+    console.log(div);
+    div.current.classList.add("no-display");
+  }
 
   //   // promise
   //   fetch(
@@ -120,13 +153,10 @@ export default function Header() {
   //         city: data.name,
   //         country: data.sys.country,
   //       });
-  //       // console.log(
-  //       //   `http://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${APIKey}&units=${unit}`
-  //       // );
-  //       console.log(data);
-  //     });
-  // };
+
   let error = useRef(); // grab html element
+  let no_location = useRef();
+  let locationFound = useRef();
 
   return (
     <div>
@@ -141,7 +171,7 @@ export default function Header() {
               className="mr-sm-2"
               onChange={handleChange}
             />
-            <Button variant="outline-success" onClick={getWeather}>
+            <Button variant="outline-success" onClick={handleClick}>
               Search
             </Button>
           </div>
@@ -150,24 +180,24 @@ export default function Header() {
           </div>
         </Form>
         {/* <div className="d-flex">
-          <span className="mx-2">°F</span>
-          <div className="custom-control custom-switch">
-            <input
-              type="checkbox"
-              className="custom-control-input"
-              id="customSwitches"
-              style={{cursor:"pointer"}}
-              checked={toggle}
-              onChange={handleSwitchChange}
-            />
-            <label
-              className="custom-control-label mx-2"
-              htmlFor="customSwitches"
-            >
-              °C
-            </label>
-          </div>
-        </div> */}
+            <span className="mx-2">°F</span>
+            <div className="custom-control custom-switch">
+              <input
+                type="checkbox"
+                className="custom-control-input"
+                id="customSwitches"
+                style={{cursor:"pointer"}}
+                checked={toggle}
+                onChange={handleSwitchChange}
+              />
+              <label
+                className="custom-control-label mx-2"
+                htmlFor="customSwitches"
+              >
+                °C
+              </label>
+            </div>
+          </div> */}
         <Switch
           className="switch"
           boxShadow="3px 3px 5px #c8c8c8"
@@ -175,16 +205,21 @@ export default function Header() {
           onColor="#f2f2f2"
           uncheckedIcon={<span className="switch-icon">°F</span>}
           checkedIcon={<span className="switch-icon">°C</span>}
-          onChange={() => {
-            handleSwitchChange();
-            getWeather();
-          }}
+          onChange={handleSwitchChange}
           // what is checked?
           checked={unit === "metric"}
         />
       </nav>
       {/* end of nav and moves to main div */}
-      <Weather value={weather} unit={unit} />
+      <div ref={no_location} className="text-center pt-5">
+        <h1>
+          No Location found...😭
+          {/* <p style={{ fontSize: 100, color: "yellow" }}> 128575</p> */}
+        </h1>
+      </div>
+      <div ref={locationFound} className="no-display">
+        <Weather value={weather} unit={unit} />
+      </div>
     </div>
 
     // <Navbar bg="light" expand="col">

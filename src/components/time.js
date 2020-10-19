@@ -2,8 +2,8 @@ function GetTime(timezone) {
   let d = new Date();
   let localTime = d.getTime(); // returns the number of milliseconds*
   let localOffset = d.getTimezoneOffset() * 60000; // 60000 convert offset to minute
-  console.log(localTime, "localTime");
-  console.log(localOffset, "localOffset");
+  // console.log(localTime, "localTime");
+  // console.log(localOffset, "localOffset");
   let utc = localTime + localOffset;
   let cur_localtime = utc + 1000 * timezone; // Obtain destination city's offset in hours and convert to milliseconds
   //1000 will result in the first millisecond of the next second, https://www.w3schools.com/jsref/jsref_utc.asp
