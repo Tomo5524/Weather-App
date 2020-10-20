@@ -23,6 +23,7 @@ export default function Header() {
     feels_like: "",
     temp_min: "",
     temp_max: "",
+    description: "",
     humidity: "",
     country: "",
     cityName: "",
@@ -57,14 +58,11 @@ export default function Header() {
   };
 
   const handleSwitchChange = () => {
-    // let new_unit = unit === "metric" ? "imperial" : "metric";
-    // console.log(new_unit, "new_unit/////////////");
-    // setToggleSwitch(new_unit);
+    // avoid showing no location message when there is no valid city to look up
+    // avoid switicing toggle there is no valid city
     if (no_location.current.classList.contains("no-display")) {
       setToggleSwitch(unit === "metric" ? "imperial" : "metric");
     }
-
-    // getWeather();
   };
 
   useEffect(() => {
@@ -79,6 +77,9 @@ export default function Header() {
         const response = await fetch(
           `http://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${APIKey}&units=${unit}`
         );
+        console.log(
+          `http://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${APIKey}&units=${unit}`
+        );
 
         let data = await response.json();
         console.log(data);
@@ -88,11 +89,13 @@ export default function Header() {
           feels_like: getAllDigitsBeforeDecimals(feels_like),
           temp_min: getAllDigitsBeforeDecimals(temp_min),
           temp_max: getAllDigitsBeforeDecimals(temp_max),
+          description: data.weather[0].description,
           humidity: humidity,
           country: data.sys.country,
           cityName: data.name,
           dt: data.dt,
           timezone: data.timezone,
+          icon: data.weather[0].icon,
         });
         // no_location.classList.add("no-display");
         // locationFound.classList.remove("no-display");
@@ -160,8 +163,8 @@ export default function Header() {
 
   return (
     <div>
-      <nav className="nav bg-light justify-content-between p-4 align-items-center">
-        <h2>Weather App</h2>
+      <nav className="nav bg-custom radius justify-content-between p-4 align-items-center">
+        <h2 className="pb-3">Weather App</h2>
         {/* when clicking enter, page refreshes why?? */}
         <Form>
           <div className="d-flex align-items-center">
@@ -175,8 +178,8 @@ export default function Header() {
               Search
             </Button>
           </div>
-          <div ref={error} className="error-container d-block">
-            <p>Location Not Found</p>
+          <div ref={error} className="error-container d-block pb-3">
+            <p className="m-0">Location Not Found</p>
           </div>
         </Form>
         {/* <div className="d-flex">
@@ -199,7 +202,7 @@ export default function Header() {
             </div>
           </div> */}
         <Switch
-          className="switch"
+          className="switch pb-3"
           boxShadow="3px 3px 5px #c8c8c8"
           offColor="#f2f2f2"
           onColor="#f2f2f2"
