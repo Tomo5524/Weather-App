@@ -8,7 +8,7 @@ function Weather(props) {
 
   console.log(props, "props in Weather");
   console.log(props.value.icon, "icon");
-  let country = getCountryName(props.value.country);
+  let country = getCountryName(props.country.toUpperCase());
 
   const cur_time = GetTime(props.value.timezone);
   // console.log(cur_time, "time////////////");

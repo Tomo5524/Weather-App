@@ -17,6 +17,14 @@ export default function Header() {
   const [unit, setToggleSwitch] = useState("metric");
   console.log(unit, "unit/////////////////////////////");
   const [city, setCity] = useState("");
+  const [country, setCountry] = useState("");
+  const [geo, setGeo] = useState({
+    lat: 0,
+    lng: 0,
+  }); // get from openCage
+  // const [lat, setLat] = useState(0);
+  // const [lng, setLng] = useState(0);
+  // console.log(geo.lat, geo.lng, "lat lng /////////////////////////////");
   const [userInput, setUserInput] = useState("");
   const [weather, setWeather] = useState({
     temp: "",
@@ -25,7 +33,7 @@ export default function Header() {
     temp_max: "",
     description: "",
     humidity: "",
-    country: "",
+    // country: "",
     cityName: "",
     dt: 0,
     timezone: 0,
@@ -68,6 +76,7 @@ export default function Header() {
   useEffect(() => {
     async function getWeather() {
       console.log("getWeather fired");
+      console.log(lat, lng, "lat and lng in get weather");
       const APIKey = process.env.REACT_APP_WEATHER_API_KEY;
 
       // console.log(cur_unit, "cur_unit in getweather/////////");
@@ -75,26 +84,26 @@ export default function Header() {
 
       try {
         const response = await fetch(
-          `http://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${APIKey}&units=${unit}`
+          `https://api.openweathermap.org/data/2.5/onecall?lat=${geo.lat}&lon=${geo.lng}&exclude=minutely,hourly,alerts&appid=${APIKey}&units=${unit}`
         );
-        console.log(
-          `http://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${APIKey}&units=${unit}`
-        );
+        // console.log(
+        //   `http://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${APIKey}&units=${unit}`
+        // );
 
         let data = await response.json();
-        console.log(data);
-        let { temp, feels_like, temp_max, temp_min, humidity } = data.main;
+        console.log(data, "//////////////////////  weather ");
+        let { temp, feels_like, humidity, weather } = data.current;
         setWeather({
           temp: getAllDigitsBeforeDecimals(temp),
           feels_like: getAllDigitsBeforeDecimals(feels_like),
-          temp_min: getAllDigitsBeforeDecimals(temp_min),
-          temp_max: getAllDigitsBeforeDecimals(temp_max),
-          description: data.weather[0].description,
+          temp_min: getAllDigitsBeforeDecimals(data.daily[0].min),
+          temp_max: getAllDigitsBeforeDecimals(data.daily[0].max),
+          description: weather[0].description,
           humidity: humidity,
-          country: data.sys.country,
+          // country: data.sys.country,
           cityName: data.name,
           dt: data.dt,
-          timezone: data.timezone,
+          timezone: data.timezone_offset,
           icon: data.weather[0].icon,
         });
         // no_location.classList.add("no-display");
@@ -107,7 +116,7 @@ export default function Header() {
         // clean up display when there is no city
 
         // fires when json returns 404
-        // console.log("not valid");
+        console.log("not valid");
         // console.log(locationFound, "locationFound");
         // locationFound.classList.add("no-display");
         // no_location.classList.remove("no-display");
@@ -123,9 +132,65 @@ export default function Header() {
     }
     // if city not checked, this useEffect fires right after application opens.
     if (city) {
-      getWeather();
+      const res = getLatAndLng();
+      res.then((res) => {
+        console.log(res, "res ///////////");
+        setGeo(res.results[0].geometry.lat, res.results[0].geometry.lng);
+        // getWeather(res.results[0].geometry.lat, res.results[0].geometry.lng);
+      });
+      // console.log(res, "res ///////////");
+      // setCountry(res.results[0].components.country_code);
+      // // then((data) => {
+      // //   console.log(data);
+      // // });
+      // // console.log(res, "res///////////////////////");
+      // // let lat = res.lat;
+      // // let lng = res.lng;
+      // // console.log(lat, lng, "lat and lng before get weather");
+      // getWeather(res.results[0].geometry.lat, res.results[0].geometry.lng);
     }
-  }, [unit, city]);
+    // console.log(geo.lat, geo.lng, "lat lng /////////////////////////////");
+    // if (geo.lat !== 0 && geo.lng !== 0) {
+    //   console.log("weahter fired");
+    //   getWeather();
+    // }
+  }, [unit, city, geo]);
+
+  async function getLatAndLng() {
+    // return this function
+    console.log("geodata fired");
+    const APIKey = process.env.REACT_APP_Geo_API_KEY;
+
+    let queryPath = `https://api.opencagedata.com/geocode/v1/json?q=${city}&key=${APIKey}`;
+    return fetch(queryPath).then((response) => response.json());
+
+    // fetch(
+    //   `https://api.opencagedata.com/geocode/v1/json?q=${city}&key=${APIKey}`
+    // )
+    //   .then((response) => response.json())
+    //   .then((response) => response);
+
+    // console.log(
+    //   `https://api.opencagedata.com/geocode/v1/json?q=${city}&key=${APIKey}`
+    // );
+
+    // let data = await response.json();
+    // console.log(data, "lat log data///////////////////");
+    // console.log(data.results);
+    // console.log(data.results[0].geometry);
+    // setCountry(data.results[0].components.country_code);
+    // let geo_arr = [data.results[0].geometry.lat, data.results[0].geometry.lng];
+    // console.log(geo_arr, "geo_arr");
+    // return data;
+    // setGeo({
+    //   country: data.results[0].components.country_code,
+    //   lat: data.results[0].geometry.lat,
+    //   lng: data.results[0].geometry.lng,
+    // });
+    // setCountry(data.results[0].components.country_code);
+    // setLat(data.results[0].geometry.lat);
+    // setLng(data.results[0].geometry.lng);
+  }
 
   function ShowDiv(div) {
     div.current.classList.remove("no-display");
@@ -221,7 +286,7 @@ export default function Header() {
         </h1>
       </div>
       <div ref={locationFound} className="no-display">
-        <Weather value={weather} unit={unit} />
+        <Weather value={weather} unit={unit} country={country} />
       </div>
     </div>
 
