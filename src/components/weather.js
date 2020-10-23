@@ -1,14 +1,17 @@
 import React, { useState } from "react";
 import getCountryName from "./countries";
 import GetTime from "./time";
+import NextFiveDays from "./nextDaysForecast";
 // import "../reset.css";
 
 function Weather(props) {
   const [icon, setIcon] = useState("");
+  console.log(props.forecast);
 
   console.log(props, "props in Weather");
   console.log(props.value.icon, "icon");
   let country = getCountryName(props.country.toUpperCase());
+  console.log(country, "country name");
 
   const cur_time = GetTime(props.value.timezone);
   // console.log(cur_time, "time////////////");
@@ -29,47 +32,54 @@ function Weather(props) {
     }
   }
 
+  const nextFiveDays = props.forecast.map((item, idx) => (
+    <NextFiveDays key={idx} id={idx} value={item} />
+  ));
+
   return (
-    <div className="d-flex justify-content-around align-items-center text-light mt-3">
-      <div>
-        {/* <h3>{props.value}</h3> */}
-        <h2>
-          {props.value.cityName}
-          {country ? ", " : ""}
-          {/* when there is no country set, nothing should appear on screen */}
-          {country}
-        </h2>
-        <p>{country ? "as of " + cur_time : ""}</p>
-        {/* line height should be smaller? */}
-        <h1 className="mb-0">
-          {props.value.temp}
-          {unit}
-        </h1>
-        <h3>{props.value.description}</h3>
-        <h4>
-          Feels like: {props.value.feels_like}
-          {unit}
-        </h4>
-      </div>
-      <div>
-        <img
-          id="wicon"
-          style={{ width: 120, height: 120 }}
-          src={icon}
-          alt="Weather icon"
-        ></img>
-        <div className="d-flex">
-          <h4>
-            {props.value.temp_max}
+    <div>
+      <div className="d-flex justify-content-around align-items-center text-light mt-3">
+        <div>
+          {/* <h3>{props.value}</h3> */}
+          <h2>
+            {props.value.cityName}
+            {country ? ", " : ""}
+            {/* when there is no country set, nothing should appear on screen */}
+            {country}
+          </h2>
+          <p>{country ? "as of " + cur_time : ""}</p>
+          {/* line height should be smaller? */}
+          <h1 className="mb-0">
+            {props.value.temp}
             {unit}
-          </h4>
-          <h4 className="px-3">/</h4>
+          </h1>
+          <h3>{props.value.description}</h3>
           <h4>
-            {props.value.temp_min}
+            Feels like: {props.value.feels_like}
             {unit}
           </h4>
         </div>
+        <div>
+          <img
+            id="wicon"
+            style={{ width: 120, height: 120 }}
+            src={icon}
+            alt="Weather icon"
+          ></img>
+          <div className="d-flex">
+            <h4>
+              {props.value.temp_max}
+              {unit}
+            </h4>
+            <h4 className="px-3">/</h4>
+            <h4>
+              {props.value.temp_min}
+              {unit}
+            </h4>
+          </div>
+        </div>
       </div>
+      <div className="d-flex py-3">{nextFiveDays}</div>
     </div>
   );
 }
