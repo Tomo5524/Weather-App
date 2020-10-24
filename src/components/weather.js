@@ -5,11 +5,13 @@ import NextFiveDays from "./nextDaysForecast";
 // import "../reset.css";
 
 function Weather(props) {
+  console.log(props, "props in weather");
   const [icon, setIcon] = useState("");
   let country = getCountryName(props.country.toUpperCase());
   const cur_time = GetTime(props.value.timezone);
   let unit = country ? (props.unit === "metric" ? "°C" : "°F") : "";
   getIcon(props.value.icon);
+  // console.log(props.value.icon);
 
   async function getIcon(iconName) {
     if (iconName) {
@@ -36,7 +38,7 @@ function Weather(props) {
             {country ? ", " : ""}
             {country}
           </h2>
-          <p>{country ? "as of " + cur_time : ""}</p>
+          <p className="m-3">{country ? "as of " + cur_time : ""}</p>
           <h1 className="mb-0">
             {props.value.temp}
             {unit}
@@ -67,7 +69,7 @@ function Weather(props) {
           </div>
         </div>
       </div>
-      <div className="bg-light my-3 p-3 radius opacity">
+      <div className="bg-light my-3 mt-4 p-4 radius opacity">
         <h2>Daily Forecast</h2>
         <div className="d-flex">{nextFiveDays}</div>
       </div>
