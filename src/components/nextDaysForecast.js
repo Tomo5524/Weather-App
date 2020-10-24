@@ -3,7 +3,7 @@ import React, { useState } from "react";
 function NextFiveDays(props) {
   const [icon, setIcon] = useState("");
   let date = new Date(props.value.dt * 1000);
-  console.log(date, "date");
+  // console.log(date, "date");
   let day = date.getDate();
   let month = date.getMonth() + 1;
   let max_temp = props.value.temp.max;

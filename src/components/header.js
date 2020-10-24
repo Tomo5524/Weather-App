@@ -6,7 +6,7 @@ import { Button, FormControl, Form } from "react-bootstrap";
 
 export default function Header() {
   const [unit, setToggleSwitch] = useState("metric");
-  console.log(unit, "unit/////////////////////////////");
+  // console.log(unit, "unit/////////////////////////////");
   const [city, setCity] = useState("");
   const [country, setCountry] = useState("");
   const [nextFiveDays, setNextFiveDays] = useState([]);
@@ -52,7 +52,7 @@ export default function Header() {
         let cityName = "";
         // Fecth firsst API
         let response = await fetch(
-          `http://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${APIKey}`,
+          `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${APIKey}`,
           {
             mode: "cors",
           }
@@ -68,7 +68,7 @@ export default function Header() {
 
         // Fetch another API
         let weather_res = await fetch(
-          `http://api.openweathermap.org/data/2.5/onecall?lat=${lat}&lon=${lng}&exclude=minutely,hourly,alerts&appid=${APIKey}&units=${unit}`,
+          `https://api.openweathermap.org/data/2.5/onecall?lat=${lat}&lon=${lng}&exclude=minutely,hourly,alerts&appid=${APIKey}&units=${unit}`,
           {
             mode: "cors",
           }
