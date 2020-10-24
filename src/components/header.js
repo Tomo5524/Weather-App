@@ -65,7 +65,7 @@ export default function Header() {
 
         // Fetch another API
         let weather_res = await fetch(
-          `https://api.openweathermap.org/data/2.5/onecall?lat=${lat}&lon=${lng}&exclude=minutely,hourly,alerts&appid=${APIKey}&units=${unit}`
+          `http://api.openweathermap.org/data/2.5/onecall?lat=${lat}&lon=${lng}&exclude=minutely,hourly,alerts&appid=${APIKey}&units=${unit}`
         );
 
         let res = await weather_res.json();
