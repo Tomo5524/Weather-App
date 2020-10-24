@@ -38,7 +38,7 @@ function Weather(props) {
             {country ? ", " : ""}
             {country}
           </h2>
-          <p className="mt-3">{country ? "as of " + cur_time : ""}</p>
+          <p className="mb-3">{country ? "as of " + cur_time : ""}</p>
           <h1 className="mb-0">
             {props.value.temp}
             {unit}
