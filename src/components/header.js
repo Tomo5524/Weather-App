@@ -52,7 +52,10 @@ export default function Header() {
         let cityName = "";
         // Fecth firsst API
         let response = await fetch(
-          `http://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${APIKey}`
+          `http://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${APIKey}`,
+          {
+            mode: "cors",
+          }
         );
         // convert to json
 
@@ -65,7 +68,10 @@ export default function Header() {
 
         // Fetch another API
         let weather_res = await fetch(
-          `http://api.openweathermap.org/data/2.5/onecall?lat=${lat}&lon=${lng}&exclude=minutely,hourly,alerts&appid=${APIKey}&units=${unit}`
+          `http://api.openweathermap.org/data/2.5/onecall?lat=${lat}&lon=${lng}&exclude=minutely,hourly,alerts&appid=${APIKey}&units=${unit}`,
+          {
+            mode: "cors",
+          }
         );
 
         let res = await weather_res.json();
