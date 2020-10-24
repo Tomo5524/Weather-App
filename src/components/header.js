@@ -2,16 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import Weather from "./weather";
 // import Navbar from "react-bootstrap/Navbar";
 import Switch from "react-switch";
-import {
-  Navbar,
-  Nav,
-  NavItem,
-  NavDropdown,
-  MenuItem,
-  Form,
-  Button,
-  FormControl,
-} from "react-bootstrap";
+import { Button, FormControl, Form } from "react-bootstrap";
 
 export default function Header() {
   const [unit, setToggleSwitch] = useState("metric");
@@ -19,14 +10,6 @@ export default function Header() {
   const [city, setCity] = useState("");
   const [country, setCountry] = useState("");
   const [nextFiveDays, setNextFiveDays] = useState([]);
-  // const [geo, setGeo] = useState({
-  //   lat: 0,
-  //   lng: 0,
-  // }); // get from openCage
-  // console.log(geo.lat, geo.lng, "lat and lng in first chunk");
-  // const [lat, setLat] = useState(0);
-  // const [lng, setLng] = useState(0);
-  // console.log(geo.lat, geo.lng, "lat lng /////////////////////////////");
   const [userInput, setUserInput] = useState("");
   const [weather, setWeather] = useState({
     temp: "",
@@ -41,30 +24,15 @@ export default function Header() {
     timezone: 0,
   });
 
-  // const [weather, setWeather] = useState();
-
-  const getAllDigitsBeforeDecimals = (num) => {
-    // console.log(typeof num);
-    const str_num = num.toString();
-    let new_num = "";
-    for (let i = 0; i < str_num.length; i++) {
-      if (str_num[i] === ".") return new_num;
-      new_num += str_num[i];
-      // console.log(new_num, "new_num");
-    }
-    // needs this new_num for when num has no decimal e.g. 12°C
-    return new_num;
-  };
-
   const handleChange = (e) => {
-    // console.log(toggle);
+    // onChange, each time user enters, userInput gets updated
     setUserInput(e.target.value);
   };
 
   const handleClick = () => {
-    console.log("submitted");
+    // fires when submit gets clicked
+    // set city to userInput
     setCity(userInput);
-    // setUserInput("");
   };
 
   const handleSwitchChange = () => {
@@ -76,87 +44,138 @@ export default function Header() {
   };
 
   useEffect(() => {
-    if (city) {
-      // const APIGeoKey = process.env.REACT_APP_Geo_API_KEY;
-      const APIKey = process.env.REACT_APP_WEATHER_API_KEY;
-      let cityName = "";
-      // console.log(
-      //   `https://api.opencagedata.com/geocode/v1/json?q=${city}&key=${APIGeoKey}`
-      // );
-      fetch(
-        `http://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${APIKey}`
-      )
-        .then(function (response) {
-          if (response.ok) {
-            return response.json();
-          } else {
-            return Promise.reject(response);
-          }
-        })
-        .then(function (data) {
-          console.log(data, "data of lat and lng////");
-          // Store the post data to a variable
-          let lat = data.coord.lat;
-          let lng = data.coord.lon;
-          setCountry(data.sys.country);
-          cityName = data.name;
+    // get 2 API calls in the same function
+    // first get Latitude and Longitude, then call another API with lat and lon
+    async function getWeather() {
+      try {
+        const APIKey = process.env.REACT_APP_WEATHER_API_KEY;
+        let cityName = "";
+        // Fecth firsst API
+        let response = await fetch(
+          `http://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${APIKey}`
+        );
+        // convert to json
 
-          // Fetch another API
-          // console.log(
-          //   `https://api.openweathermap.org/data/2.5/onecall?lat=${lat}&lon=${lng}&exclude=minutely,hourly,alerts&appid=${APIKey}&units=${unit}`
-          // );
-          return fetch(
-            `https://api.openweathermap.org/data/2.5/onecall?lat=${lat}&lon=${lng}&exclude=minutely,hourly,alerts&appid=${APIKey}&units=${unit}`
-          );
-        })
-        .then(function (response) {
-          if (response.ok) {
-            return response.json();
-          } else {
-            return Promise.reject(response);
-          }
-        })
-        .then(function (res) {
-          console.log(res, "response of weather////");
-          let { temp, feels_like, humidity, weather } = res.current;
-          console.log(temp, feels_like, humidity, weather);
-          console.log(Math.round(res.daily[0].temp.min), "min temp");
-          setWeather({
-            temp: Math.round(temp),
-            feels_like: Math.round(feels_like),
-            temp_min: Math.round(res.daily[0].temp.min),
-            temp_max: Math.round(res.daily[0].temp.max),
-            description: weather[0].description,
-            humidity: humidity,
-            cityName: cityName,
-            dt: res.dt,
-            timezone: res.timezone_offset,
-            icon: weather[0].icon,
-          });
-          setNextFiveDays(res.daily.slice(1, 6));
-          console.log("weather fetched ////////////");
+        let data = await response.json();
+        // Store the post data to a variable
+        let lat = data.coord.lat;
+        let lng = data.coord.lon;
+        setCountry(data.sys.country);
+        cityName = data.name;
 
-          hideDiv(no_location);
-          ShowDiv(locationFound);
-        })
-        .catch(function (e) {
-          console.log(e, "not valid");
+        // Fetch another API
+        let weather_res = await fetch(
+          `https://api.openweathermap.org/data/2.5/onecall?lat=${lat}&lon=${lng}&exclude=minutely,hourly,alerts&appid=${APIKey}&units=${unit}`
+        );
 
-          error.current.classList.add("display");
-          setTimeout(() => {
-            error.current.classList.remove("display");
-          }, 2000);
-          hideDiv(locationFound);
-          setTimeout(() => {
-            ShowDiv(no_location);
-          }, 2000);
+        let res = await weather_res.json();
+        let { temp, feels_like, humidity, weather } = res.current;
+        setWeather({
+          temp: Math.round(temp),
+          feels_like: Math.round(feels_like),
+          temp_min: Math.round(res.daily[0].temp.min),
+          temp_max: Math.round(res.daily[0].temp.max),
+          description: weather[0].description,
+          humidity: humidity,
+          cityName: cityName,
+          dt: res.dt,
+          timezone: res.timezone_offset,
+          icon: weather[0].icon,
         });
+        // get arrays of next five days
+        setNextFiveDays(res.daily.slice(1, 6));
+        hideDiv(no_location);
+        ShowDiv(locationFound);
+      } catch (e) {
+        error.current.classList.add("display");
+        setTimeout(() => {
+          error.current.classList.remove("display");
+        }, 2000);
+        hideDiv(locationFound);
+        setTimeout(() => {
+          ShowDiv(no_location);
+        }, 2000);
+      }
     }
-    // if (city) {
-    //   try async funtion
-    //   getWeather()
-    // }
+    if (city) {
+      getWeather();
+    }
   }, [unit, city]);
+
+  /////// calling multiple API calls asynchronouslly (but looks like synchronously) with out async and await
+  // if (city) {
+  //   // const APIGeoKey = process.env.REACT_APP_Geo_API_KEY;
+  //   const APIKey = process.env.REACT_APP_WEATHER_API_KEY;
+  //   let cityName = "";
+  //   fetch(
+  //     `http://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${APIKey}`
+  //   )
+  //     .then(function (response) {
+  //       if (response.ok) {
+  //         return response.json();
+  //       } else {
+  //         return Promise.reject(response);
+  //       }
+  //     })
+  //     .then(function (data) {
+  //       console.log(data, "data of lat and lng////");
+  //       // Store the post data to a variable
+  //       let lat = data.coord.lat;
+  //       let lng = data.coord.lon;
+  //       setCountry(data.sys.country);
+  //       cityName = data.name;
+
+  //       // Fetch another API
+  //       // console.log(
+  //       //   `https://api.openweathermap.org/data/2.5/onecall?lat=${lat}&lon=${lng}&exclude=minutely,hourly,alerts&appid=${APIKey}&units=${unit}`
+  //       // );
+  //       return fetch(
+  //         `https://api.openweathermap.org/data/2.5/onecall?lat=${lat}&lon=${lng}&exclude=minutely,hourly,alerts&appid=${APIKey}&units=${unit}`
+  //       );
+  //     })
+  //     .then(function (response) {
+  //       if (response.ok) {
+  //         return response.json();
+  //       } else {
+  //         return Promise.reject(response);
+  //       }
+  //     })
+  //     .then(function (res) {
+  //       console.log(res, "response of weather////");
+  //       let { temp, feels_like, humidity, weather } = res.current;
+  //       console.log(temp, feels_like, humidity, weather);
+  //       console.log(Math.round(res.daily[0].temp.min), "min temp");
+  //       setWeather({
+  //         temp: Math.round(temp),
+  //         feels_like: Math.round(feels_like),
+  //         temp_min: Math.round(res.daily[0].temp.min),
+  //         temp_max: Math.round(res.daily[0].temp.max),
+  //         description: weather[0].description,
+  //         humidity: humidity,
+  //         cityName: cityName,
+  //         dt: res.dt,
+  //         timezone: res.timezone_offset,
+  //         icon: weather[0].icon,
+  //       });
+  //       setNextFiveDays(res.daily.slice(1, 6));
+  //       console.log("weather fetched ////////////");
+
+  //       hideDiv(no_location);
+  //       ShowDiv(locationFound);
+  //     })
+  //     .catch(function (e) {
+  //       console.log(e, "not valid");
+
+  //       error.current.classList.add("display");
+  //       setTimeout(() => {
+  //         error.current.classList.remove("display");
+  //       }, 2000);
+  //       hideDiv(locationFound);
+  //       setTimeout(() => {
+  //         ShowDiv(no_location);
+  //       }, 2000);
+  //     });
+  // }
 
   function ShowDiv(div) {
     div.current.classList.remove("no-display");
@@ -167,27 +186,6 @@ export default function Header() {
     div.current.classList.add("no-display");
   }
 
-  //   // promise
-  //   fetch(
-  //     `http://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${APIKey}&units=${unit}`
-  //   )
-  //     .then(function (response) {
-  //       return response.json();
-  //     })
-  //     .then((data) => {
-  //       console.log(data);
-  //       let { temp, feels_like, temp_max, temp_min, humidity } = data.main;
-  //       // setWeather(data.main.temp);
-  //       setWeather({
-  //         temp: getAllDigitsBeforeDecimals(temp),
-  //         feels_like: getAllDigitsBeforeDecimals(feels_like),
-  //         temp_min: getAllDigitsBeforeDecimals(temp_min),
-  //         temp_max: getAllDigitsBeforeDecimals(temp_max),
-  //         humidity: humidity,
-  //         city: data.name,
-  //         country: data.sys.country,
-  //       });
-
   let error = useRef(); // grab html element
   let no_location = useRef();
   let locationFound = useRef();
@@ -196,8 +194,7 @@ export default function Header() {
     <div>
       <nav className="nav bg-custom radius justify-content-between p-4 align-items-center">
         <h2 className="pb-3">Weather App</h2>
-        {/* when clicking enter, page refreshes why?? */}
-        <Form>
+        <div>
           <div className="d-flex align-items-center">
             <FormControl
               type="text"
@@ -212,26 +209,8 @@ export default function Header() {
           <div ref={error} className="error-container d-block pb-3">
             <p className="m-0">Location Not Found</p>
           </div>
-        </Form>
-        {/* <div className="d-flex">
-            <span className="mx-2">°F</span>
-            <div className="custom-control custom-switch">
-              <input
-                type="checkbox"
-                className="custom-control-input"
-                id="customSwitches"
-                style={{cursor:"pointer"}}
-                checked={toggle}
-                onChange={handleSwitchChange}
-              />
-              <label
-                className="custom-control-label mx-2"
-                htmlFor="customSwitches"
-              >
-                °C
-              </label>
-            </div>
-          </div> */}
+        </div>
+
         <Switch
           className="switch pb-3"
           boxShadow="3px 3px 5px #c8c8c8"
@@ -260,129 +239,5 @@ export default function Header() {
         />
       </div>
     </div>
-
-    // <Navbar bg="light" expand="col">
-    //   <Navbar.Brand style={{ fontSize: "2rem" }} href="#home">
-    //     Weather APP
-    //   </Navbar.Brand>
-    //   <Form inline className="justify-content-center">
-    //     <FormControl type="text" placeholder="Search" className="mr-sm-2" />
-    //     <Button variant="outline-success">Search</Button>
-    //   </Form>
-    // </Navbar>
   );
 }
-
-// useEffect(() => {
-//   async function getWeather() {
-//     console.log("getWeather fired");
-//     console.log(geo.lat, geo.lng, "lat and lng in get weather");
-//     const APIKey = process.env.REACT_APP_WEATHER_API_KEY;
-
-//     // console.log(cur_unit, "cur_unit in getweather/////////");
-//     console.log(unit, "unit in getweather/////////");
-
-//     try {
-//       const response = await fetch(
-//         `https://api.openweathermap.org/data/2.5/onecall?lat=${geo.lat}&lon=${geo.lng}&exclude=minutely,hourly,alerts&appid=${APIKey}&units=${unit}`
-//       );
-//       // console.log(
-//       //   `http://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${APIKey}&units=${unit}`
-//       // );
-
-//       let data = await response.json();
-//       console.log(data, "//////////////////////  weather ");
-//       console.log(
-//         data.current,
-//         "////////////////////// data.current weather "
-//       );
-//       let { temp, feels_like, humidity, weather } = data.current;
-//       console.log(temp, feels_like, humidity, weather);
-//       console.log(data.daily[0].temp.min, "min temp");
-//       setWeather({
-//         temp: getAllDigitsBeforeDecimals(temp),
-//         feels_like: getAllDigitsBeforeDecimals(feels_like),
-//         temp_min: getAllDigitsBeforeDecimals(data.daily[0].temp.min),
-//         temp_max: getAllDigitsBeforeDecimals(data.daily[0].temp.max),
-//         description: weather[0].description,
-//         humidity: humidity,
-//         // country: data.sys.country,
-//         cityName: userInput.toUpperCase(),
-//         dt: data.dt,
-//         timezone: data.timezone_offset,
-//         icon: data.weather[0].icon,
-//       });
-//       console.log("weather fetched ////////////");
-//       // no_location.classList.add("no-display");
-//       // locationFound.classList.remove("no-display");
-//       hideDiv(no_location);
-//       ShowDiv(locationFound);
-//       // reset city
-//       // userInput("");
-//     } catch (e) {
-//       // clean up display when there is no city
-//       console.log(geo.lat, geo.lng, "not valid////");
-//       console.log(city, "not valid////");
-//       // fires when json returns 404
-//       console.log("not valid");
-//       // console.log(locationFound, "locationFound");
-//       // locationFound.classList.add("no-display");
-//       // no_location.classList.remove("no-display");
-//       error.current.classList.add("display");
-//       setTimeout(() => {
-//         error.current.classList.remove("display");
-//       }, 2000);
-//       hideDiv(locationFound);
-//       setTimeout(() => {
-//         ShowDiv(no_location);
-//       }, 2000);
-//     }
-//   }
-//   // if city not checked, this useEffect fires right after application opens.
-//   // console.log(geo.lat, geo.lng, "lat lng /////////////////////////////");
-//   console.log(geo.lat, geo.lng, "lat and lng");
-//   if (geo.lat && geo.lng) {
-//     console.log("lat and lng not 0//////////////////");
-//     getWeather();
-//   }
-// }, [geo]);
-
-// useEffect(() => {
-//   async function getLatAndLng() {
-//     // return this function
-//     console.log("geodata fired");
-//     const APIKey = process.env.REACT_APP_Geo_API_KEY;
-//     try {
-//       const queryPath = `https://api.opencagedata.com/geocode/v1/json?q=${city}&key=${APIKey}`;
-//       const response = await fetch(queryPath);
-//       const res = await response.json();
-//       console.log(res, "data////////");
-//       console.log(
-//         res.results[0].geometry.lat,
-//         res.results[0].geometry.lng,
-//         "lat and lng from api calls//////"
-//       );
-//       setGeo({
-//         lat: res.results[0].geometry.lat,
-//         lng: res.results[0].geometry.lng,
-//       });
-//       setCountry(res.results[0].components.country_code);
-//     } catch (e) {
-//       console.log("hiya");
-//       if (city) {
-//         error.current.classList.add("display");
-//         setTimeout(() => {
-//           error.current.classList.remove("display");
-//         }, 2000);
-//         hideDiv(locationFound);
-//         setTimeout(() => {
-//           ShowDiv(no_location);
-//         }, 2000);
-//       }
-//     }
-//   }
-//   if (city){
-//     getLatAndLng();
-//   }
-
-// }, [unit, city]);

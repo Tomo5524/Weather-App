@@ -1,23 +1,50 @@
-import React from "react";
+import React, { useState } from "react";
 
 function NextFiveDays(props) {
-  console.log(props, "props in next five days");
-  console.log(props.id, "id in next five days");
-  console.log(props.value.dt, "dt from props");
+  const [icon, setIcon] = useState("");
   let date = new Date(props.value.dt * 1000);
   console.log(date, "date");
   let day = date.getDate();
   let month = date.getMonth() + 1;
-  console.log(day, month, "day and month");
+  let max_temp = props.value.temp.max;
+  let max_temp_rounded = Math.round(max_temp);
+  let min_temp = props.value.temp.min;
+  let min_temp_rounded = Math.round(min_temp);
+  getIcon(props.value.weather[0].icon);
+
+  async function getIcon(iconName) {
+    if (iconName) {
+      const iconApi = await fetch(
+        `http://openweathermap.org/img/w/${iconName}.png`
+      );
+      setIcon(iconApi.url);
+    }
+  }
+
   return (
     <div
-      className={"m-2 radius bg-white text-center flex-grow-1"}
-      //   apply opacity to bg
-      //   id={props.value.name}
+      className={
+        "m-2 text-center flex-grow-1 " + (props.id !== 4 ? "border-right" : "")
+      }
     >
-      <h3>
+      <h4>
         {month}/{day}
+      </h4>
+      <h3>
+        {max_temp_rounded}
+        {props.unit}
       </h3>
+      <h5>
+        {min_temp_rounded}
+        {props.unit}
+      </h5>
+      <img
+        id="wicon"
+        style={{ width: 70, height: 70 }}
+        src={icon}
+        alt="Weather icon"
+      ></img>
+      <h5>Humidity: {props.value.humidity}%</h5>
     </div>
   );
 }

@@ -6,22 +6,10 @@ import NextFiveDays from "./nextDaysForecast";
 
 function Weather(props) {
   const [icon, setIcon] = useState("");
-  console.log(props.forecast);
-
-  console.log(props, "props in Weather");
-  console.log(props.value.icon, "icon");
   let country = getCountryName(props.country.toUpperCase());
-  console.log(country, "country name");
-
   const cur_time = GetTime(props.value.timezone);
-  // console.log(cur_time, "time////////////");
   let unit = country ? (props.unit === "metric" ? "°C" : "°F") : "";
-  let iconUrl = getIcon(props.value.icon);
-
-  // let iconurl = `http://openweathermap.org/img/w/${props.value.icon}.png`;
-  // console.log(iconurl);
-  // let image = useRef();
-  // image.current.src = iconurl;
+  getIcon(props.value.icon);
 
   async function getIcon(iconName) {
     if (iconName) {
@@ -33,22 +21,19 @@ function Weather(props) {
   }
 
   const nextFiveDays = props.forecast.map((item, idx) => (
-    <NextFiveDays key={idx} id={idx} value={item} />
+    <NextFiveDays key={idx} id={idx} value={item} unit={unit} />
   ));
 
   return (
     <div>
       <div className="d-flex justify-content-around align-items-center text-light mt-3">
         <div>
-          {/* <h3>{props.value}</h3> */}
           <h2>
             {props.value.cityName}
             {country ? ", " : ""}
-            {/* when there is no country set, nothing should appear on screen */}
             {country}
           </h2>
           <p>{country ? "as of " + cur_time : ""}</p>
-          {/* line height should be smaller? */}
           <h1 className="mb-0">
             {props.value.temp}
             {unit}
@@ -79,7 +64,10 @@ function Weather(props) {
           </div>
         </div>
       </div>
-      <div className="d-flex py-3">{nextFiveDays}</div>
+      <div className="bg-light my-3 p-3 radius opacity">
+        <h2>Daily Forecast</h2>
+        <div className="d-flex">{nextFiveDays}</div>
+      </div>
     </div>
   );
 }
