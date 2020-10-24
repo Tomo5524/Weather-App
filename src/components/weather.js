@@ -14,7 +14,7 @@ function Weather(props) {
   async function getIcon(iconName) {
     if (iconName) {
       const iconApi = await fetch(
-        "http://openweathermap.org/img/w/" + iconName + ".png",
+        `http://openweathermap.org/img/w/${iconName}.png`,
         {
           mode: "cors",
         }
